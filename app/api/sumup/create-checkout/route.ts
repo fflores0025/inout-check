@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdmin } from '@/lib/supabase'
 import { createSumUpCheckout } from '@/lib/sumup'
-import { generateQRCode, generateTicketNumber, calculateCommission } from '@/lib/tickets'
-import { v4 as uuidv4 } from 'uuid'
+import { calculateCommission } from '@/lib/tickets'
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,7 +14,6 @@ export async function POST(req: NextRequest) {
 
     const supabase = createSupabaseAdmin()
 
-    // 1. Fetch event
     const { data: event, error: eventError } = await supabase
       .from('events')
       .select('*, ticket_types(*)')
@@ -27,7 +25,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Evento no encontrado' }, { status: 404 })
     }
 
-    // 2. Validate stock and calculate total
     let subtotal = 0
     for (const item of cart) {
       const tt = event.ticket_types?.find((t: any) => t.id === item.ticket_type_id)
@@ -44,7 +41,6 @@ export async function POST(req: NextRequest) {
     const comision = calculateCommission(subtotal)
     const total = subtotal + comision
 
-    // 3. Create or find customer
     let customerId: string | null = null
     const { data: existingCustomer } = await supabase
       .from('customers')
@@ -63,11 +59,9 @@ export async function POST(req: NextRequest) {
       customerId = newCustomer?.id ?? null
     }
 
-    // 4. Generate order number
     const { data: orderNumData } = await supabase.rpc('generate_order_number')
     const orderNumber = orderNumData ?? `ORD-${Date.now()}`
 
-    // 5. Create order in PENDING state
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .insert({
@@ -89,8 +83,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Error creando el pedido' }, { status: 500 })
     }
 
-    // 6. Create SumUp checkout
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://inout-check.vercel.app'
     const sumupCheckout = await createSumUpCheckout({
       amount: total,
       description: `${cart.reduce((a: number, i: any) => a + i.quantity, 0)} entrada(s) — ${event.nombre}`,
@@ -99,7 +92,6 @@ export async function POST(req: NextRequest) {
       customer_email: customer.email,
     })
 
-    // 7. Save order_items (cart snapshot for webhook processing)
     const orderItems = cart.map((item: any) => {
       const tt = event.ticket_types?.find((t: any) => t.id === item.ticket_type_id)
       return {
@@ -111,15 +103,16 @@ export async function POST(req: NextRequest) {
     })
     await supabase.from('order_items').insert(orderItems)
 
-    // 8. Save SumUp checkout ID to order
     await supabase
       .from('orders')
       .update({ sumup_checkout_id: sumupCheckout.id })
       .eq('id', order.id)
 
+    const merchantCode = process.env.SUMUP_MERCHANT_CODE ?? 'MC4GZ9C4'
+
     return NextResponse.json({
       order_id: order.id,
-      checkout_url: `https://pay.sumup.com/b2c/${process.env.NEXT_PUBLIC_SUMUP_MERCHANT_CODE}?checkout-id=${sumupCheckout.id}`,
+      checkout_url: `https://pay.sumup.com/b2c/${merchantCode}?checkout-id=${sumupCheckout.id}`,
       sumup_checkout_id: sumupCheckout.id,
     })
   } catch (err: any) {
