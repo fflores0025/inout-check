@@ -39,7 +39,8 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { nombre, fecha, lugar, tipo, estado, firebase_id, ticket_types } = body
+    const { nombre, fecha, lugar, tipo, estado, firebase_id, ticket_types,
+      artistas, vestimenta, apertura, edad_minima, normas, descripcion, maps_url, web_evento } = body
 
     if (!nombre || !fecha) {
       return NextResponse.json({ error: 'nombre y fecha son obligatorios' }, { status: 400, headers: CORS_HEADERS })
@@ -74,7 +75,16 @@ export async function POST(req: NextRequest) {
         // Actualizar evento existente
         const { data, error } = await supabase
           .from('events')
-          .update({ nombre, tipo: tipoMapeado, fecha_inicio, venue_nombre, venue_ciudad, aforo_total, estado: estadoTaquilla })
+          .update({ nombre, tipo: tipoMapeado, fecha_inicio, venue_nombre, venue_ciudad, aforo_total, estado: estadoTaquilla,
+            descripcion: descripcion || null,
+            artistas: artistas || null,
+            vestimenta: vestimenta || null,
+            apertura_puertas: apertura || null,
+            edad_minima: edad_minima || null,
+            normas: normas || null,
+            maps_url: maps_url || null,
+            web_evento: web_evento || null,
+          })
           .eq('id', existing.id)
           .select()
           .single()
@@ -88,7 +98,16 @@ export async function POST(req: NextRequest) {
     if (!event && !eventError) {
       const { data, error } = await supabase
         .from('events')
-        .insert([{ slug, nombre, tipo: tipoMapeado, fecha_inicio, venue_nombre, venue_ciudad, aforo_total, estado: estadoTaquilla, descripcion }])
+        .insert([{ slug, nombre, tipo: tipoMapeado, fecha_inicio, venue_nombre, venue_ciudad, aforo_total, estado: estadoTaquilla,
+          descripcion: descripcion || null,
+          artistas: artistas || null,
+          vestimenta: vestimenta || null,
+          apertura_puertas: apertura || null,
+          edad_minima: edad_minima || null,
+          normas: normas || null,
+          maps_url: maps_url || null,
+          web_evento: web_evento || null,
+        }])
         .select()
         .single()
       event = data; eventError = error
