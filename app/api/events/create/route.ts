@@ -39,8 +39,11 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { nombre, fecha, lugar, tipo, estado, firebase_id, ticket_types,
-      artistas, vestimenta, apertura, edad_minima, normas, descripcion, maps_url, web_evento } = body
+    const {
+      nombre, fecha, lugar, tipo, estado, firebase_id, ticket_types,
+      artistas, vestimenta, apertura, edad_minima, normas,
+      descripcion: descripcionInput, maps_url, web_evento
+    } = body
 
     if (!nombre || !fecha) {
       return NextResponse.json({ error: 'nombre y fecha son obligatorios' }, { status: 400, headers: CORS_HEADERS })
@@ -54,42 +57,41 @@ export async function POST(req: NextRequest) {
     const venue_nombre = lugarParts[0]?.trim() || 'Por confirmar'
     const venue_ciudad = lugarParts[1]?.trim() || 'Madrid'
 
-    // Calcular aforo total sumando stocks
     const aforo_total = Array.isArray(ticket_types)
       ? ticket_types.reduce((sum: number, t: any) => sum + (t.stock_total || 0), 0)
       : 0
 
-    // Buscar si ya existe un evento con este firebase_id para hacer upsert
+    const extraFields = {
+      descripcion: descripcionInput || null,
+      artistas: artistas || null,
+      vestimenta: vestimenta || null,
+      apertura_puertas: apertura || null,
+      edad_minima: edad_minima || null,
+      normas: normas || null,
+      maps_url: maps_url || null,
+      web_evento: web_evento || null,
+    }
+
     let event: any = null
     let eventError: any = null
-    const descripcion = firebase_id ?? ''
 
+    // Buscar evento existente por firebase_id en la descripción
     if (firebase_id) {
       const { data: existing } = await supabase
         .from('events')
         .select('id, slug')
-        .ilike('descripcion', `%ID Firebase: ${firebase_id}%`)
+        .ilike('descripcion', `%${firebase_id}%`)
         .maybeSingle()
 
       if (existing) {
-        // Actualizar evento existente
         const { data, error } = await supabase
           .from('events')
-          .update({ nombre, tipo: tipoMapeado, fecha_inicio, venue_nombre, venue_ciudad, aforo_total, estado: estadoTaquilla,
-            descripcion: descripcion || null,
-            artistas: artistas || null,
-            vestimenta: vestimenta || null,
-            apertura_puertas: apertura || null,
-            edad_minima: edad_minima || null,
-            normas: normas || null,
-            maps_url: maps_url || null,
-            web_evento: web_evento || null,
-          })
+          .update({ nombre, tipo: tipoMapeado, fecha_inicio, venue_nombre, venue_ciudad, aforo_total, estado: estadoTaquilla, ...extraFields })
           .eq('id', existing.id)
           .select()
           .single()
-        event = data; eventError = error
-        // Borrar ticket_types anteriores para reemplazarlos
+        event = data
+        eventError = error
         if (!error) await supabase.from('ticket_types').delete().eq('event_id', existing.id)
       }
     }
@@ -98,19 +100,16 @@ export async function POST(req: NextRequest) {
     if (!event && !eventError) {
       const { data, error } = await supabase
         .from('events')
-        .insert([{ slug, nombre, tipo: tipoMapeado, fecha_inicio, venue_nombre, venue_ciudad, aforo_total, estado: estadoTaquilla,
-          descripcion: descripcion || null,
-          artistas: artistas || null,
-          vestimenta: vestimenta || null,
-          apertura_puertas: apertura || null,
-          edad_minima: edad_minima || null,
-          normas: normas || null,
-          maps_url: maps_url || null,
-          web_evento: web_evento || null,
+        .insert([{
+          slug, nombre, tipo: tipoMapeado, fecha_inicio,
+          venue_nombre, venue_ciudad, aforo_total, estado: estadoTaquilla,
+          descripcion: firebase_id ? `firebase:${firebase_id}` : null,
+          ...extraFields
         }])
         .select()
         .single()
-      event = data; eventError = error
+      event = data
+      eventError = error
     }
 
     if (eventError) {
@@ -118,7 +117,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: eventError.message }, { status: 500, headers: CORS_HEADERS })
     }
 
-    // 2. Crear ticket_types si los hay
+    // Insertar ticket_types
     if (Array.isArray(ticket_types) && ticket_types.length > 0) {
       const ticketRows = ticket_types.map((t: any) => ({
         event_id: event.id,
@@ -130,7 +129,6 @@ export async function POST(req: NextRequest) {
         max_por_persona: parseInt(t.max_por_persona) || 4,
         activo: true,
       }))
-
       const { error: ttError } = await supabase.from('ticket_types').insert(ticketRows)
       if (ttError) console.error('Ticket types error:', ttError)
     }
