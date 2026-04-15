@@ -12,8 +12,7 @@ import { es } from 'date-fns/locale'
 
 type PageStatus = 'loading' | 'polling' | 'completed' | 'failed'
 
-export default function ConfirmacionPage() {
-  const params = useSearchParams()
+export default function ConfirmacionClient() {  const params = useSearchParams()
   const orderId = params.get('order')
 
   const [status, setStatus] = useState<PageStatus>('loading')
