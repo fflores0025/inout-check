@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     // Buscar si ya existe un evento con este firebase_id para hacer upsert
     let event: any = null
     let eventError: any = null
-    const descripcion = `Evento creado desde InOut Connect. ID Firebase: ${firebase_id ?? '—'}`
+    const descripcion = firebase_id ?? ''
 
     if (firebase_id) {
       const { data: existing } = await supabase
