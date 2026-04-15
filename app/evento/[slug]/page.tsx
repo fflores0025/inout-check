@@ -8,7 +8,6 @@ import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import Link from 'next/link'
 import Image from 'next/image'
-import clsx from 'clsx'
 
 export const revalidate = 30
 
@@ -34,6 +33,11 @@ export default async function EventPage({ params }: Props) {
   const hora = format(new Date(event.fecha_inicio), "HH:mm", { locale: es })
   const totalStock = event.ticket_types?.reduce((acc, t) => acc + t.stock_disponible, 0) ?? 0
 
+  // Filtrar texto interno generado automáticamente
+  const descripcionLimpia = event.descripcion?.includes('ID Firebase:')
+    ? ''
+    : event.descripcion
+
   return (
     <>
       <Header />
@@ -57,7 +61,7 @@ export default async function EventPage({ params }: Props) {
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-brand-black via-brand-black/60 to-transparent" />
-          
+
           {/* Back button */}
           <div className="absolute top-6 left-4 md:left-8">
             <Link href="/" className="flex items-center gap-2 text-brand-gray hover:text-brand-white transition-colors text-sm">
@@ -77,7 +81,7 @@ export default async function EventPage({ params }: Props) {
                 <h1 className="font-display font-black text-4xl md:text-5xl text-brand-white mb-4">
                   {event.nombre}
                 </h1>
-                
+
                 <div className="flex flex-wrap gap-4 mb-6">
                   <div className="flex items-center gap-2 text-brand-gray">
                     <Calendar className="w-4 h-4 text-brand-gold" />
@@ -93,8 +97,8 @@ export default async function EventPage({ params }: Props) {
                   </div>
                 </div>
 
-                {event.descripcion && (
-                  <p className="text-brand-gray leading-relaxed">{event.descripcion}</p>
+                {descripcionLimpia && (
+                  <p className="text-brand-gray leading-relaxed">{descripcionLimpia}</p>
                 )}
               </div>
 
