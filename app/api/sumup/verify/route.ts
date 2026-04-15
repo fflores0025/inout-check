@@ -34,6 +34,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ status: order.estado })
   }
 
+  console.log('SumUp checkout status:', checkout.status, 'checkout id:', order.sumup_checkout_id)
   if (checkout.status !== 'PAID') {
     return NextResponse.json({ status: order.estado, sumup_status: checkout.status })
   }
