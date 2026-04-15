@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { Event } from '@/types'
 import { Loader2, ArrowRight, Lock } from 'lucide-react'
 
@@ -14,7 +14,7 @@ export default function CheckoutForm({ event, cartItems, total }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [checkoutId, setCheckoutId] = useState<string | null>(null)
   const [widgetLoading, setWidgetLoading] = useState(false)
-  const widgetRef = useRef<HTMLDivElement>(null)
+
   const [form, setForm] = useState({ nombre: '', email: '', email2: '', telefono: '' })
 
   const update = (k: string, v: string) => setForm((p) => ({ ...p, [k]: v }))
@@ -40,11 +40,11 @@ export default function CheckoutForm({ event, cartItems, total }: Props) {
 
   function mountWidget(id: string) {
     const SumUpCard = (window as any).SumUpCard
-    if (!SumUpCard || !widgetRef.current) {
+    const el = document.getElementById('sumup-widget')
+    if (!SumUpCard || !el) {
       setTimeout(() => mountWidget(id), 300)
       return
     }
-    widgetRef.current.innerHTML = ''
     SumUpCard.mount({
       id: 'sumup-widget',
       checkoutId: id,
@@ -116,9 +116,7 @@ export default function CheckoutForm({ event, cartItems, total }: Props) {
             <Loader2 className="w-6 h-6 animate-spin text-brand-gold" />
           </div>
         )}
-        <div ref={widgetRef}>
-          <div id="sumup-widget" />
-        </div>
+        <div id="sumup-widget" />
         {error && (
           <div className="mt-4 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">
             <p className="text-red-400 text-sm">{error}</p>
