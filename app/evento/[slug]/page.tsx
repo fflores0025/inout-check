@@ -69,7 +69,7 @@ export default async function EventPage({ params }: Props) {
                 <div className="flex flex-wrap gap-4 mb-4">
                   <div className="flex items-center gap-2 text-brand-gray">
                     <Calendar className="w-4 h-4 text-brand-gold" />
-                    <span className="capitalize">{fecha} · {hora}h</span>
+                    <span className="capitalize">{fecha} · {hora}h{event.fecha_fin ? ` — ${format(new Date(event.fecha_fin), "HH:mm", { locale: es })}h` : ''}</span>
                   </div>
                   <div className="flex items-center gap-2 text-brand-gray">
                     <MapPin className="w-4 h-4 text-brand-gold" />
