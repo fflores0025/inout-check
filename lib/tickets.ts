@@ -51,8 +51,8 @@ export function formatPrice(amount: number, currency = 'EUR'): string {
   }).format(amount)
 }
 
-// ─── Calculate SumUp commission (1.95% standard) ─────────────────────────────
-export function calculateCommission(subtotal: number, rate = 0.0195): number {
+// ─── Calculate commission (3.5% — cubre SumUp 1.95% + margen gestión 1.55%) ──
+export function calculateCommission(subtotal: number, rate = 0.035): number {
   return Math.round(subtotal * rate * 100) / 100
 }
 
