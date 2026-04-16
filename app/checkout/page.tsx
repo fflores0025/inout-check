@@ -86,7 +86,7 @@ export default async function CheckoutPage({ searchParams }: Props) {
                     <span className="text-brand-white">{formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-brand-gray">Gastos de gestión (1,95%)</span>
+                    <span className="text-brand-gray">Gastos de gestión (3,3%)</span>
                     <span className="text-brand-white">{formatPrice(comision)}</span>
                   </div>
                   <div className="flex justify-between font-bold pt-2 border-t border-brand-border">
