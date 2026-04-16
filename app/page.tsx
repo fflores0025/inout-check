@@ -1,4 +1,4 @@
-import { createSupabaseServer } from '@/lib/supabase'
+çimport { createSupabaseServer } from '@/lib/supabase'
 import { Event } from '@/types'
 import Header from '@/components/Header'
 import EventCard from '@/components/events/EventCard'
@@ -6,19 +6,35 @@ import { Ticket, Zap, Shield, Smartphone } from 'lucide-react'
 
 export const revalidate = 60
 
-async function getEvents(): Promise<Event[]> {
+async function getEvents(): Promise<{ proximos: Event[], finalizados: Event[] }> {
   const supabase = await createSupabaseServer()
-  const { data } = await supabase
+  const ahora = new Date().toISOString()
+
+  // Próximos: publicado o agotado, y que no hayan terminado aún
+  // (usa fecha_fin si existe, si no fecha_inicio)
+  const { data: proximosData } = await supabase
     .from('events')
     .select('*, ticket_types(*)')
-    .eq('estado', 'publicado')
-    .gte('fecha_inicio', new Date().toISOString())
+    .in('estado', ['publicado', 'agotado'])
+    .or(`fecha_fin.gte.${ahora},and(fecha_fin.is.null,fecha_inicio.gte.${ahora})`)
     .order('fecha_inicio', { ascending: true })
-  return data ?? []
+
+  // Finalizados: estado finalizado, o que la fecha_fin/inicio ya pasó
+  const { data: finalizadosData } = await supabase
+    .from('events')
+    .select('*, ticket_types(*)')
+    .or(`estado.eq.finalizado,and(estado.in.(publicado,agotado),fecha_fin.lt.${ahora})`)
+    .order('fecha_inicio', { ascending: false })
+    .limit(12)
+
+  return {
+    proximos: proximosData ?? [],
+    finalizados: finalizadosData ?? []
+  }
 }
 
 export default async function HomePage() {
-  const events = await getEvents()
+  const { proximos, finalizados } = await getEvents()
 
   return (
     <>
@@ -27,9 +43,8 @@ export default async function HomePage() {
 
         {/* Hero */}
         <section className="relative pt-32 pb-24 px-4 overflow-hidden">
-          {/* Background glow */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-brand-gold/5 rounded-full blur-3xl pointer-events-none" />
-          
+
           <div className="max-w-6xl mx-auto text-center relative">
             <div className="inline-flex items-center gap-2 bg-brand-card border border-brand-border rounded-full px-4 py-1.5 mb-8 animate-in">
               <span className="w-1.5 h-1.5 rounded-full bg-brand-gold animate-pulse" />
@@ -46,7 +61,6 @@ export default async function HomePage() {
               Compra directamente. Pulsera RFID o QR. Acceso instantáneo.
             </p>
 
-            {/* Features */}
             <div className="flex flex-wrap justify-center gap-6 animate-in" style={{ animationDelay: '0.3s' }}>
               {[
                 { icon: Zap, label: 'Compra en 60 segundos' },
@@ -62,14 +76,14 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* Events grid */}
-        <section className="max-w-6xl mx-auto px-4 pb-24">
+        {/* Próximos eventos */}
+        <section className="max-w-6xl mx-auto px-4 pb-16">
           <div className="flex items-center justify-between mb-10">
             <h2 className="section-title">Próximos eventos</h2>
-            <span className="label">{events.length} evento{events.length !== 1 ? 's' : ''}</span>
+            <span className="label">{proximos.length} evento{proximos.length !== 1 ? 's' : ''}</span>
           </div>
 
-          {events.length === 0 ? (
+          {proximos.length === 0 ? (
             <div className="card text-center py-20">
               <Ticket className="w-12 h-12 text-brand-gray mx-auto mb-4" />
               <p className="text-brand-gray">No hay eventos disponibles en este momento.</p>
@@ -77,12 +91,28 @@ export default async function HomePage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 stagger">
-              {events.map((event) => (
+              {proximos.map((event) => (
                 <EventCard key={event.id} event={event} />
               ))}
             </div>
           )}
         </section>
+
+        {/* Eventos finalizados */}
+        {finalizados.length > 0 && (
+          <section className="max-w-6xl mx-auto px-4 pb-24">
+            <div className="flex items-center justify-between mb-10">
+              <h2 className="section-title opacity-70">Eventos finalizados</h2>
+              <span className="label">{finalizados.length} evento{finalizados.length !== 1 ? 's' : ''}</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 stagger opacity-60">
+              {finalizados.map((event) => (
+                <EventCard key={event.id} event={event} />
+              ))}
+            </div>
+          </section>
+        )}
 
       </main>
 
