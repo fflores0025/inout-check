@@ -8,22 +8,19 @@ export const revalidate = 60
 
 async function getEvents(): Promise<{ proximos: Event[], finalizados: Event[] }> {
   const supabase = await createSupabaseServer()
-  const ahora = new Date().toISOString()
 
-  // Próximos: publicado o agotado, y que no hayan terminado aún
-  // (usa fecha_fin si existe, si no fecha_inicio)
+  // Próximos: publicado o agotado (sin importar fecha)
   const { data: proximosData } = await supabase
     .from('events')
     .select('*, ticket_types(*)')
     .in('estado', ['publicado', 'agotado'])
-    .or(`fecha_fin.gte.${ahora},and(fecha_fin.is.null,fecha_inicio.gte.${ahora})`)
     .order('fecha_inicio', { ascending: true })
 
-  // Finalizados: estado finalizado, o que la fecha_fin/inicio ya pasó
+  // Finalizados: solo los que tengan estado "finalizado"
   const { data: finalizadosData } = await supabase
     .from('events')
     .select('*, ticket_types(*)')
-    .or(`estado.eq.finalizado,and(estado.in.(publicado,agotado),fecha_fin.lt.${ahora})`)
+    .eq('estado', 'finalizado')
     .order('fecha_inicio', { ascending: false })
     .limit(12)
 
