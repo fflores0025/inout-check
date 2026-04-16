@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://inout-check.vercel.app'
-    const sumupCheckout = await createSumUpCheckout({
+    const sumupCheckout: any = await createSumUpCheckout({
       amount: total,
       description: `${cart.reduce((a: number, i: any) => a + i.quantity, 0)} entrada(s) — ${event.nombre}`,
       reference: order.id,
@@ -110,9 +110,14 @@ export async function POST(req: NextRequest) {
 
     const merchantCode = process.env.SUMUP_MERCHANT_CODE ?? 'MC4GZ9C4'
 
+    // Si SumUp devolvió hosted_checkout_url (con Apple Pay + Google Pay), usarlo.
+    // Si no, caer al checkout por defecto.
+    const checkoutUrl = sumupCheckout.hosted_checkout_url
+      ?? `https://pay.sumup.com/b2c/${merchantCode}?checkout-id=${sumupCheckout.id}`
+
     return NextResponse.json({
       order_id: order.id,
-      checkout_url: `https://pay.sumup.com/b2c/${merchantCode}?checkout-id=${sumupCheckout.id}`,
+      checkout_url: checkoutUrl,
       sumup_checkout_id: sumupCheckout.id,
     })
   } catch (err: any) {
