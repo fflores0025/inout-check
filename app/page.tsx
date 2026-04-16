@@ -1,4 +1,4 @@
-çimport { createSupabaseServer } from '@/lib/supabase'
+import { createSupabaseServer } from '@/lib/supabase'
 import { Event } from '@/types'
 import Header from '@/components/Header'
 import EventCard from '@/components/events/EventCard'
