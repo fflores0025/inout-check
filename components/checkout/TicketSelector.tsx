@@ -159,7 +159,7 @@ export default function TicketSelector({ event }: Props) {
             <span>{formatPrice(subtotal)}</span>
           </div>
           <div className="flex justify-between text-sm text-brand-gray">
-            <span>Gestión (1,95%)</span>
+            <span>Gestión (3,5%)</span>
             <span>{formatPrice(comision)}</span>
           </div>
           <div className="flex justify-between font-bold text-brand-white pt-2 border-t border-brand-border">
