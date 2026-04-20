@@ -9,7 +9,12 @@ export default function QRDisplay({ qrCode, size = 220 }: Props) {
 
   useEffect(() => {
     if (!canvasRef.current) return
-    QRCode.toCanvas(canvasRef.current, qrCode, {
+
+    const qrData = JSON.stringify({
+      ticket_id: qrCode
+    })
+
+    QRCode.toCanvas(canvasRef.current, qrData, {
       width: size,
       margin: 2,
       color: { dark: '#0A0A0A', light: '#F5F0E8' },
