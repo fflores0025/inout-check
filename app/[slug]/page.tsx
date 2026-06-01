@@ -8,8 +8,11 @@ import { notFound } from 'next/navigation'
 export const revalidate = 60
 
 async function getOrgEvents(slug: string): Promise<{ org: any, proximos: Event[], finalizados: Event[] } | null> {
-  const supabase = await createSupabaseServer()
-
+const { createClient } = await import('@supabase/supabase-js')
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
   const { data: org } = await supabase
     .from('organizations')
     .select('*')
