@@ -46,7 +46,9 @@ const supabase = createClient(
 export default async function OrgPage({ params }: { params: { slug: string } }) {
   const result = await getOrgEvents(params.slug)
 
-  if (!result) notFound()
+  if (!result) {
+  return <div style={{color:'white',padding:'2rem'}}>Org no encontrada para slug: {params.slug}</div>
+}
 
   const { org, proximos, finalizados } = result
 
