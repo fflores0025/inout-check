@@ -5,7 +5,6 @@ import { Menu, X, Ticket } from 'lucide-react'
 
 export default function Header() {
   const [open, setOpen] = useState(false)
-
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-brand-border bg-brand-black/80 backdrop-blur-xl">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -19,7 +18,6 @@ export default function Header() {
             {process.env.NEXT_PUBLIC_COMPANY_NAME ?? 'TAQUILLA'}
           </span>
         </Link>
-
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-8">
           <Link href="/" className="text-sm text-brand-gray hover:text-brand-white transition-colors">
@@ -28,11 +26,10 @@ export default function Header() {
           <Link href="/cuenta" className="text-sm text-brand-gray hover:text-brand-white transition-colors">
             Mis entradas
           </Link>
-          <Link href="/validar" className="btn-secondary text-sm py-2 px-4">
+          <Link href="/validar" className="text-sm py-2 px-4 border border-brand-gold text-brand-gold rounded-lg hover:bg-brand-gold hover:text-brand-black transition-all duration-200">
             Validar entrada
           </Link>
         </nav>
-
         {/* Mobile menu */}
         <button
           className="md:hidden text-brand-gray hover:text-brand-white"
@@ -41,13 +38,12 @@ export default function Header() {
           {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>
-
       {/* Mobile dropdown */}
       {open && (
         <div className="md:hidden border-t border-brand-border bg-brand-dark px-4 py-4 flex flex-col gap-4">
           <Link href="/" className="text-sm text-brand-gray" onClick={() => setOpen(false)}>Eventos</Link>
           <Link href="/cuenta" className="text-sm text-brand-gray" onClick={() => setOpen(false)}>Mis entradas</Link>
-          <Link href="/validar" className="btn-secondary text-sm py-2 text-center" onClick={() => setOpen(false)}>Validar entrada</Link>
+          <Link href="/validar" className="text-sm py-2 text-center border border-brand-gold text-brand-gold rounded-lg hover:bg-brand-gold hover:text-brand-black transition-all duration-200" onClick={() => setOpen(false)}>Validar entrada</Link>
         </div>
       )}
     </header>
