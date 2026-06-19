@@ -53,8 +53,16 @@ export default async function OrgPage({ params }: { params: Promise<{ slug: stri
   }
 
   const { org, proximos, finalizados } = result
+
+  const brandStyle = {
+    '--brand-primary': org.color_primario || '#C9A84C',
+    '--brand-primary-light': org.color_primario || '#E8C97A',
+    '--brand-primary-dim': org.color_secundario || '#8A6F32',
+    '--brand-secondary': org.color_secundario || '#C9A84C',
+  } as React.CSSProperties
+
   return (
-    <>
+    <div style={brandStyle}>
       <Header />
       <main className="min-h-screen">
         <section className="relative pt-32 pb-16 px-4">
@@ -104,6 +112,6 @@ export default async function OrgPage({ params }: { params: Promise<{ slug: stri
           <p className="text-brand-gray text-sm">© {new Date().getFullYear()} {org.nombre} · Powered by InOut Media</p>
         </div>
       </footer>
-    </>
+    </div>
   )
 }
