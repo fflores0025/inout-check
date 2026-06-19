@@ -13,9 +13,9 @@ module.exports = {
           dark: '#111111',
           card: '#1A1A1A',
           border: '#2A2A2A',
-          gold: '#C9A84C',
-          'gold-light': '#E8C97A',
-          'gold-dim': '#8A6F32',
+          gold: 'var(--brand-primary, #C9A84C)',
+          'gold-light': 'var(--brand-primary-light, #E8C97A)',
+          'gold-dim': 'var(--brand-primary-dim, #8A6F32)',
           red: '#E03030',
           'red-dark': '#A02020',
           white: '#F5F0E8',
@@ -30,7 +30,7 @@ module.exports = {
       },
       backgroundImage: {
         'noise': "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E\")",
-        'gold-gradient': 'linear-gradient(135deg, #C9A84C 0%, #E8C97A 50%, #C9A84C 100%)',
+        'gold-gradient': 'linear-gradient(135deg, var(--brand-primary, #C9A84C) 0%, var(--brand-primary-light, #E8C97A) 50%, var(--brand-primary, #C9A84C) 100%)',
         'dark-gradient': 'linear-gradient(180deg, #0A0A0A 0%, #1A1A1A 100%)',
       },
       animation: {
